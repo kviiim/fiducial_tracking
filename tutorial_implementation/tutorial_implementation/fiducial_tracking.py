@@ -1,14 +1,12 @@
 import cv2
 from cv_bridge import CvBridge
-
 import apriltag
-
 from rclpy.node import Node
 import rclpy
-
 from sensor_msgs.msg import Image
 import numpy as np
 
+family = "tag36h11"
 
 class ProcessTag(Node):
     '''
@@ -32,7 +30,7 @@ class ProcessTag(Node):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # print("[INFO] detecting AprilTags...")
-        options = apriltag.DetectorOptions(families="tag36h11")
+        options = apriltag.DetectorOptions(families=family)
         detector = apriltag.Detector(options)
         results = detector.detect(gray)
         print("[INFO] {} total AprilTags detected".format(len(results)))
@@ -65,8 +63,6 @@ class ProcessTag(Node):
         if len(self.detected_image) != 0:
             image_message = self.bridge.cv2_to_imgmsg(self.detected_image, encoding="passthrough")
             self.publisher.publish(image_message)
-
-
 
 
 
