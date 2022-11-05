@@ -14,6 +14,8 @@ class Node():
         self.M = M
         self.color = color
         self.edges = {}
+    def __repr__(self) -> str:
+        print('Node- D: ', self.D, ' M: ', self.M)
 
 class Edge():
     def __init__(self, node1, node2, weight):
@@ -22,7 +24,7 @@ class Edge():
         self.weight = weight
 
     def __repr__(self) -> str:
-        print(self.weight)
+        print('Edge- ', self.weight)
 
 class FindMarker():
     def __init__(self):
@@ -34,57 +36,77 @@ class FindMarker():
         '''
         #create image graph
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        cv2.imshow('Grayscale', image)
-        print("grayscale size", image.shape)
-        segmentation_graph = np.zeros(image.shape[0] * image.shape[1], dtype=Node)
+
+        image_nodes = np.zeros(image.shape[0] * image.shape[1], dtype=Node)
         edges = np.array([], dtype=Edge)
+        segments = []
         # create a set of components
         components = set()
         #process each pixel
         for [y,row] in enumerate(image):
             for [x,pixel] in enumerate(row):
-                print(x, y)
                 #calculate gradient of pixel
                 if x != len(row) -1 | x != 0:
-                    x_grad = image[y][x+1] - image[y][x-1]
+                    x_grad = float(image[y][x+1]) - float(image[y][x-1])
                 else: 
                     # TODO: Fix this
                     x_grad = 0.1
                 if y != len(image) -1 | y != 0:
-                    y_grad = image[y+1][x] - image[y-1][x]
+                    y_grad = float(image[y+1][x]) - float(image[y-1][x])
                 else:
                     # TODO: Fix this
                     y_grad = 0.1
-                print('xgrad', x_grad, 'ygrad', y_grad)
                 #calculate direction and magnitude of gradient
                 D = np.arctan2(y_grad, x_grad)
                 M = np.sqrt(x_grad**2 + y_grad**2)
 
                 idx = y * len(row) + x
                 #create pixel node in graph
-                segmentation_graph[idx] = Node(pixel, D, M)
+                node = Node(pixel, D, M)
+                print('node', idx, pixel, D, M)
+                image_nodes[idx] = node
 
-                current_node = segmentation_graph[idx]
+                current_node = image_nodes[idx]
                 if x != 0: 
                     # if x is not zero we can find the left pixel
-                    left_node = segmentation_graph[idx - 1]
+                    left_node = image_nodes[idx - 1]
                     left_node.edges[current_node] = abs(current_node.D - left_node.D)
                     edges = np.append(edges, Edge(left_node, current_node, abs(current_node.D - left_node.D)))
 
                 if y != 0:
                     # if y is not zero we can find the top pixel
-                    top_node = segmentation_graph[idx - len(row)]
+                    top_node = image_nodes[idx - len(row)]
                     top_node.edges[current_node] = abs(current_node.D - top_node.D)
                     edges = np.append(edges, Edge(top_node, current_node, abs(current_node.D - top_node.D)))
 
                 # if neither is zero we can find the diagonal left pixel 
                 if x != 0 & y != 0:
-                    top_left = segmentation_graph[idx - len(row) - 1]
+                    top_left = image_nodes[idx - len(row) - 1]
                     top_left.edges[current_node] = abs(current_node.D - top_left.D)
                     edges = np.append(edges, Edge(top_left, current_node, abs(current_node.D - top_left.D)))
-        print(edges)
+
         edges = sorted(edges, key=lambda edge : edge.weight)
-        print(edges)
+        for edge in edges:
+            # need to fix this
+            #find segment for node 1
+            if edge.node1 in segments:
+                #this should become the segment
+                segment1 = 0
+            else:
+                segment1 = {edge.node1}
+            #find segment for node 2
+            if edge.node2 in segments:
+                #this should become the segment
+                segment2 = 0
+            else:
+                segment2 = {edge.node2}
+
+            union_segment = segment1.union(segment2)
+            
+
+
+
+
 
     def identifier(self, potential_tag):
         '''
