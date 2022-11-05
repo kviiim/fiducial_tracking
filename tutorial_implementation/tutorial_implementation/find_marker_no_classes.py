@@ -10,20 +10,6 @@ import matplotlib.colors as mcolors
 K_D = 100
 K_M = 1200
 
-class Node():
-    def __init__(self, x, y, D, M):
-        """
-        color is the color of the pixel in bgr
-        D is the range of directions of the gradient
-        M in the range of magnitudes of the gradient
-        """
-        self.D = D
-        self.M = M
-        self.x = x
-        self.y = y
-    def __repr__(self) -> str:
-        print('Node- D: ', self.D, ' M: ', self.M)
-
 class Edge():
     def __init__(self, node1, node2, weight):
         self.node1 = node1
@@ -44,7 +30,7 @@ class Segment():
 
 class FindMarker():
     def __init__(self):
-        segments_not_class = np.array([[0, 0, 0, 0]], dtype=np.float32)
+        pass
 
     def detector(self, image):
         '''
@@ -52,12 +38,13 @@ class FindMarker():
         '''
         #create image graph
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        image_nodes = np.zeros(image.shape[0] * image.shape[1], dtype=Node)
+        # 2D array to store nodes in 
+        image_nodes = np.zeros(image.shape[0] * image.shape[1], 4, dtype=np.float32)
+        # 3D array to store edges in 
         edges = np.array([], dtype=Edge)
+        # 3D array to store segments in 
         segments = []
-        # create a set of components
-        components = set()
+
         #process each pixel
         for [y,row] in enumerate(image):
             for [x,pixel] in enumerate(row):
@@ -78,8 +65,10 @@ class FindMarker():
 
                 idx = y * len(row) + x
                 #create pixel node in graph
-                node = Node(y,x, D, M)
-                image_nodes[idx] = node
+                image_nodes[idx][0] = x
+                image_nodes[idx][1] = y
+                image_nodes[idx][2] = D
+                image_nodes[idx][3] = M
 
                 current_node = image_nodes[idx]
                 if x != 0: 
@@ -103,12 +92,12 @@ class FindMarker():
         for edge in edges:
             segment1 = None
             segment2 = None
-            segment1_in_semgents = False
+            segment1_in_segments = False
             segment2_in_segments = False
             for [idx,segment] in enumerate(segments):
                 if edge.node1 in segment:
                     segment1 = segment
-                    segment1_in_semgents = True
+                    segment1_in_segments = True
                 if edge.node2 in segment:
                     segment2 = segment
                     segment2_in_segments = True
@@ -141,13 +130,13 @@ class FindMarker():
                 if (union_D_max - union_D_min) <= min((segment1_D_max - segment1_D_min), (segment2_D_max-segment2_D_min)) + (K_D/len(union_segment)) and \
                     (union_M_max - union_M_min) <= min((segment1_M_max - segment1_M_min), (segment2_M_max-segment2_M_min)) + (K_M/len(union_segment)):
                     #union!
-                    if segment1_in_semgents:
+                    if segment1_in_segments:
                         segments.remove(segment1)
                     if segment2_in_segments:
                         segments.remove(segment2)
                     segments.append(union_segment)
                 else:
-                    if not segment1_in_semgents:
+                    if not segment1_in_segments:
                         segments.append(segment1)
                     if not segment2_in_segments:
                         segments.append(segment2)
