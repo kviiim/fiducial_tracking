@@ -1,4 +1,4 @@
-import find_marker
+import find_marker_no_classes as find_marker
 import cv2
 
 find_marker = find_marker.FindMarker()

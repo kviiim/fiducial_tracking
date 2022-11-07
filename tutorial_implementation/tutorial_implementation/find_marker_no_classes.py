@@ -39,9 +39,9 @@ class FindMarker():
         #create image graph
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # 2D array to store nodes in 
-        image_nodes = np.zeros(image.shape[0] * image.shape[1], 4, dtype=np.float32)
+        image_nodes = np.zeros([image.shape[0] * image.shape[1], 4], dtype=np.float32)
         # 3D array to store edges in 
-        edges = np.array([], dtype=Edge)
+        edges = [] #np.array([], dtype=Edge)
         # 3D array to store segments in 
         segments = []
 
@@ -74,18 +74,18 @@ class FindMarker():
                 if x != 0: 
                     # if x is not zero we can find the left pixel
                     left_node = image_nodes[idx - 1]
-                    edges = np.append(edges, Edge(left_node, current_node, abs(current_node.D - left_node.D)))
+                    edges = np.append(edges, Edge(left_node, current_node, abs(current_node[3] - left_node[3])))
 
                 if y != 0:
                     # if y is not zero we can find the top pixel
                     top_node = image_nodes[idx - len(row)]
-                    edges = np.append(edges, Edge(top_node, current_node, abs(current_node.D - top_node.D)))
+                    edges = np.append(edges, Edge(top_node, current_node, abs(current_node[3] - top_node[3])))
 
                 # if neither is zero we can find the diagonal left pixel 
                 if x != 0 & y != 0:
                     top_left = image_nodes[idx - len(row) - 1]
                     top_left.edges[current_node] = abs(current_node.D - top_left.D)
-                    edges = np.append(edges, Edge(top_left, current_node, abs(current_node.D - top_left.D)))
+                    edges = np.append(edges, Edge(top_left, current_node, abs(current_node[3] - top_left[3])))
 
         edges = sorted(edges, key=lambda edge : edge.weight)
         #find segments
@@ -141,15 +141,15 @@ class FindMarker():
                     if not segment2_in_segments:
                         segments.append(segment2)
         
-        # plotting
-        colors = ['or', 'ob', 'og', 'oy', 'oc', 'ok']
-        colors_append = ['ok' for i in range (len(segments))]
-        colors = colors + colors_append
-        for [idx,segment] in enumerate(segments):
-            for node in segment:
-                plt.plot(node.x,node.y,colors[idx%len(colors)])
-                # print(node.x, node.y)
-        plt.show()
+        # # plotting
+        # colors = ['or', 'ob', 'og', 'oy', 'oc', 'ok']
+        # colors_append = ['ok' for i in range (len(segments))]
+        # colors = colors + colors_append
+        # for [idx,segment] in enumerate(segments):
+        #     for node in segment:
+        #         plt.plot(node.x,node.y,colors[idx%len(colors)])
+        #         # print(node.x, node.y)
+        # plt.show()
 
         segments_class = []
         for segment in segments:
