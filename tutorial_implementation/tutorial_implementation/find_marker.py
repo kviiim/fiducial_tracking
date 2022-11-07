@@ -157,10 +157,16 @@ class FindMarker():
         colors_append = ['ok' for i in range (len(segments))]
         colors = colors + colors_append
         for [idx,segment] in enumerate(segments):
+            xs = []
+            ys = []
             for node in segment:
-                plt.plot(node.x,node.y,colors[idx%len(colors)])
+                xs.append(node.x)
+                ys.append(node.y)
                 # print(node.x, node.y)
+            plt.plot(ys,xs,'o')
+        plt.gca().invert_yaxis()
         plt.show()
+        print(len(segments))
 
         segments_class = []
         for segment in segments:
