@@ -175,17 +175,3 @@ class Segment_Image():
         #invert the y axis to resemble how image coordinates are stored
         plt.gca().invert_yaxis()
         plt.show()
-
-
-
-
-
-
-
-
-
-    def identifier(self, potential_tag):
-        '''
-        For a potential tag, identify it's fiducial ID or reject it
-        '''
-        pass
