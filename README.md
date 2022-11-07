@@ -28,6 +28,18 @@ $ \arctan{\frac{y}{x}}$
 ### Clustering
 Once the magnitude and direction had been calculated for each pixel, we create a graph with edges between pixels that are physically adjecent in the image. The edge weight is equal to the difference between the two pixels' gradient directions. 
 
+We then sort those edge by weight in ascending order, such that the two pixels with the closest gradient direction are at index 0. This enables us to loop through each edge in the graph, and decide if the two nodes that it have similar enough gradients to be considered as part of a segment. 
+
+To determine if two gradients are similar, we evaluate the following expressions:
+
+$ D(n\bigcup m) \leq min(D(n),D(m)) + K_D / |n\bigcup m|$
+$ M(n\bigcup m) \leq min(M(n),M(m)) + K_M / |n\bigcup m|$
+
+
+We then create a set of nodes to store that segment. We repeat this process, however if a node is already in a set, we then take the union of each node's existing set to combine them. 
+
+At the end of this process, we have a list of sets, each representing a different segment of the image. 
+
 ## Design Decisions 
 Describe a design decision you had to make when working on your project and what you ultimately did (and why)? These design decisions could be particular choices for how you implemented some part of an algorithm or perhaps a decision regarding which of two external packages to use in your project.
 
@@ -38,6 +50,8 @@ Describe a design decision you had to make when working on your project and what
 ## Challenges 
 What if any challenges did you face along the way?
 
+One challenge that we faced was in designing our code to run in a reasonable time. In part, this is a result of using python for our implementation, but also had to do with how we structured our code. We faced a lot of tradeoffs in writing clean, easy to read code, and code which runs efficiently. As our learning goals in this project were to learn about the algorithm we were studying, we chose to start by implementing it in a way which made it easy for us to understand what we were doing. However this resulted in long testing times for images of any significant size. 
+
 ## Improvements 
 What would you do to improve your project if you had more time?
 
@@ -47,3 +61,5 @@ We also would have loved to start identifying which line segments were connected
 
 ## Takeaways 
 Did you learn any interesting lessons for future robotic programming projects? These could relate to working on robotics projects in teams, working on more open-ended (and longer term) problems, or any other relevant topic.
+
+One of our main takeaways was that project scoping is difficult, and even when you have a resource that you are recreating the implementation may take longer than anticipated. In future, we will budget more time to implementation as that required more time than we initially predicted.

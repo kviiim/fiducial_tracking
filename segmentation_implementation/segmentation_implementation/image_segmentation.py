@@ -13,7 +13,8 @@ K_M = 1200
 class Node():
     def __init__(self, x, y, D, M):
         """
-        color is the color of the pixel in bgr
+        x is the pixel x coordinate
+        y is the pixel y coordinate
         D is the range of directions of the gradient
         M in the range of magnitudes of the gradient
         """
@@ -21,11 +22,20 @@ class Node():
         self.M = M
         self.x = x
         self.y = y
+
     def __repr__(self) -> str:
         print('Node- D: ', self.D, ' M: ', self.M)
 
 class Edge():
+    '''
+    Stores edges between adjacent nodes with a weight
+    '''
     def __init__(self, node1, node2, weight):
+        '''
+        node1 is a Node object
+        node2 is an adjacent Node object
+        weight is an integer weight of that edge 
+        '''
         self.node1 = node1
         self.node2 = node2
         self.weight = weight
@@ -33,19 +43,7 @@ class Edge():
     def __repr__(self) -> str:
         print('Edge- ', self.weight)
 
-class Segment():
-    def __init__(self, endpoint1, endpoint2, M, D):
-        self.endpoint1 = endpoint1
-        self.endpoin2 = endpoint2
-        self.center = ((endpoint1[0]+endpoint2[0])/2, (endpoint1[1]+endpoint2[1])/2)
-        self.M = M
-        self.D = D
-
-
-class FindMarker():
-    def __init__(self):
-        segments_not_class = np.array([[0, 0, 0, 0]], dtype=np.float32)
-
+class Segment_Image():
     def detector(self, image):
         '''
         Identify tag shaped items in a given image
@@ -61,7 +59,7 @@ class FindMarker():
         #process each pixel
         for [y,row] in enumerate(image):
             for [x,pixel] in enumerate(row):
-                #calculate gradient of pixel
+                #calculate x gradient of pixel
                 if x != len(row) -1 | x != 0:
                     x_grad = float(image[y][x+1]) - float(image[y][x-1])
                 elif x == 0: 
@@ -69,13 +67,13 @@ class FindMarker():
                 else:
                     x_grad = float(image[y][x]) - float(image[y][x-1])
 
+                #calculate y gradient of pixel
                 if y != len(image) -1 | y != 0:
                     y_grad = float(image[y+1][x]) - float(image[y-1][x])
                 elif y == 0:
                     y_grad = float(image[y+1][x]) - float(image[y][x])
                 else:
                     y_grad = float(image[y][x]) - float(image[y-1][x])
-
 
                 #calculate direction and magnitude of gradient
                 D = np.arctan2(y_grad, x_grad)
@@ -87,13 +85,14 @@ class FindMarker():
                 image_nodes[idx] = node
 
                 current_node = image_nodes[idx]
+                #create edges based on adjacent nodes
+                # if x is not zero we can find the left pixel
                 if x != 0: 
-                    # if x is not zero we can find the left pixel
                     left_node = image_nodes[idx - 1]
                     edges = np.append(edges, Edge(left_node, current_node, abs(current_node.D - left_node.D)))
-
+                    
+                # if y is not zero we can find the top pixel
                 if y != 0:
-                    # if y is not zero we can find the top pixel
                     top_node = image_nodes[idx - len(row)]
                     edges = np.append(edges, Edge(top_node, current_node, abs(current_node.D - top_node.D)))
 
@@ -102,14 +101,16 @@ class FindMarker():
                     top_left = image_nodes[idx - len(row) - 1]
                     top_left.edges[current_node] = abs(current_node.D - top_left.D)
                     edges = np.append(edges, Edge(top_left, current_node, abs(current_node.D - top_left.D)))
-
+ 
+        #sort the edges by weight
         edges = sorted(edges, key=lambda edge : edge.weight)
-        #find segments
+        #find line segments based on nodes with similar gradients
         for edge in edges:
             segment1 = None
             segment2 = None
             segment1_in_semgents = False
             segment2_in_segments = False
+            #check if current nodes are already in a line segment
             for [idx,segment] in enumerate(segments):
                 if edge.node1 in segment:
                     segment1 = segment
@@ -117,17 +118,20 @@ class FindMarker():
                 if edge.node2 in segment:
                     segment2 = segment
                     segment2_in_segments = True
-                # if segment1 and segment2:
-                #     break
-            
+            #if the nodes are not in a segment, create one
             if not segment1:
                 segment1 = {edge.node1}
             if not segment2:
                 segment2 = {edge.node2}
+
+            #do nothing if the nodes are already part of a segment
             if segment1 != segment2:
+
+                #calculate what the union of the two segments would be
                 union_segment = segment1.union(segment2)
 
-                #send help
+                #find the minimum and maximum of each segments gradient magnitude and direction
+                #optimizing our code would aim to make this cleaner, as this requires a lot of time
                 union_M_max = max(union_segment, key=operator.attrgetter('M')).M
                 union_M_min = min(union_segment, key=operator.attrgetter('M')).M
                 union_D_max = max(union_segment, key=operator.attrgetter('D')).D
@@ -143,21 +147,24 @@ class FindMarker():
                 segment2_D_max = max(segment2, key=operator.attrgetter('D')).D
                 segment2_D_min = min(segment2, key=operator.attrgetter('D')).D
 
+                #if the gradient's magnitude and direction are within similar ranges, we have found a union
                 if (union_D_max - union_D_min) <= min((segment1_D_max - segment1_D_min), (segment2_D_max-segment2_D_min)) + (K_D/len(union_segment)) and \
                     (union_M_max - union_M_min) <= min((segment1_M_max - segment1_M_min), (segment2_M_max-segment2_M_min)) + (K_M/len(union_segment)):
-                    #union!
+                    #if the segments can be combined, add their union to the segments list
                     if segment1_in_semgents:
                         segments.remove(segment1)
                     if segment2_in_segments:
                         segments.remove(segment2)
                     segments.append(union_segment)
                 else:
+                    #if the segments remain separate, ensure that they are in the segments list
                     if not segment1_in_semgents:
                         segments.append(segment1)
                     if not segment2_in_segments:
                         segments.append(segment2)
         
         # plotting
+        #find each line segment
         for [idx,segment] in enumerate(segments):
             xs = []
             ys = []
@@ -165,13 +172,10 @@ class FindMarker():
                 xs.append(node.x)
                 ys.append(node.y)
             plt.plot(ys,xs,'s',markersize=40)
+        #invert the y axis to resemble how image coordinates are stored
         plt.gca().invert_yaxis()
         plt.show()
-        print(len(segments))
 
-        segments_class = []
-        for segment in segments:
-            segments_class.append
 
 
 

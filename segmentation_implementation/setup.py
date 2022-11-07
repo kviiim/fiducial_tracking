@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'tutorial_implementation'
+package_name = 'segmentation_implementation'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'fiducial_tracking = tutorial_implementation.fiducial_tracking:main'
+            'fiducial_tracking = segmentation_implementation.fiducial_tracking_using_library:main'
         ],
     },
 )
