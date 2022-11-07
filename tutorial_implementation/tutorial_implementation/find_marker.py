@@ -64,14 +64,19 @@ class FindMarker():
                 #calculate gradient of pixel
                 if x != len(row) -1 | x != 0:
                     x_grad = float(image[y][x+1]) - float(image[y][x-1])
-                else: 
-                    # TODO: Fix this
-                    x_grad = 0.1
+                elif x == 0: 
+                    x_grad = float(image[y][x+1]) - float(image[y][x])
+                else:
+                    x_grad = float(image[y][x]) - float(image[y][x-1])
+
                 if y != len(image) -1 | y != 0:
                     y_grad = float(image[y+1][x]) - float(image[y-1][x])
+                elif y == 0:
+                    y_grad = float(image[y+1][x]) - float(image[y][x])
                 else:
-                    # TODO: Fix this
-                    y_grad = 0.1
+                    y_grad = float(image[y][x]) - float(image[y-1][x])
+
+
                 #calculate direction and magnitude of gradient
                 D = np.arctan2(y_grad, x_grad)
                 M = np.sqrt(x_grad**2 + y_grad**2)
@@ -153,17 +158,13 @@ class FindMarker():
                         segments.append(segment2)
         
         # plotting
-        colors = ['or', 'ob', 'og', 'oy', 'oc', 'ok']
-        colors_append = ['ok' for i in range (len(segments))]
-        colors = colors + colors_append
         for [idx,segment] in enumerate(segments):
             xs = []
             ys = []
             for node in segment:
                 xs.append(node.x)
                 ys.append(node.y)
-                # print(node.x, node.y)
-            plt.plot(ys,xs,'o')
+            plt.plot(ys,xs,'s',markersize=40)
         plt.gca().invert_yaxis()
         plt.show()
         print(len(segments))
