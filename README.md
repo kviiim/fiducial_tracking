@@ -43,6 +43,8 @@ At the end of this process, we have a list of sets, each representing a differen
 ## Design Decisions 
 Describe a design decision you had to make when working on your project and what you ultimately did (and why)? These design decisions could be particular choices for how you implemented some part of an algorithm or perhaps a decision regarding which of two external packages to use in your project.
 
+One design decision that we made was in how we calculated the gradient. There are many different methods that we could have used, we chose to look at the pixels directly before and after the current pixel - effectively a 3x3 kernel. This choice necessetated that we find a different method of calculating the gradient at the edges of the image. We ended up deciding to just compare the current pixel value to the one before or after (depending on which edge we were looking at). We noticed that not calculating the gradient at the edges of the image resulted in our segmentation algorithm finding "fake" segments at the image borders, but made the decision that in a realistic scenario where we are looking for a fiducial tag, the edges of the image are not super important as we will likely not be able to find a cut off tag anyways so this shortcut was fine for our application.
+
 - make image greyscale 
 - calculate gradient not looking directly at pixel
 - gradient calculation around the edges 
